@@ -95,22 +95,6 @@ An acknowledgement email is automatically sent to the candidate.
 
 ---
 
-## 📸 Screenshots
-
-### Workflow
-
-> Add screenshot here
-
-### Google Sheets Output
-
-> Add screenshot here
-
-### Confirmation Email
-
-> Add screenshot here
-
----
-
 ## 💡 Future Improvements
 
 - Resume scoring
@@ -134,19 +118,6 @@ An acknowledgement email is automatically sent to the candidate.
 - JSON Schema Design
 - Google Workspace Automation
 - Low-Code Development
-
----
-
-## 📥 Import Workflow
-
-1. Download `workflow.json`.
-2. Open n8n.
-3. Click **Import Workflow**.
-4. Configure your own:
-   - Gmail Credentials
-   - Google Sheets Credentials
-   - Gemini API Credentials
-5. Execute the workflow.
 
 ---
 
