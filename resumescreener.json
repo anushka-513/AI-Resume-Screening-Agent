@@ -1,0 +1,345 @@
+{
+  "name": "AI Resume Screener",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "q": "has:attachment"
+        }
+      },
+      "id": "fcf094ca-e26d-4ea2-a05a-a745fbc05e17",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{$json.id}}",
+        "simple": false,
+        "options": {
+          "dataPropertyAttachmentsPrefixName": "attachment_",
+          "downloadAttachments": true
+        }
+      },
+      "id": "9e2ddf1d-43ce-423b-a653-0e783883f95d",
+      "name": "Get a message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        112
+      ],
+      "webhookId": "b0959200-100d-4b0a-a6f7-9efb75d37b61"
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-flash-latest"
+        },
+        "text": "Extract and return ALL readable text content from this resume document verbatim. Include the candidate name, email, phone, skills, education, and experience exactly as written. Do not summarize.",
+        "inputType": "binary",
+        "binaryPropertyName": "attachment_0",
+        "options": {
+          "maxOutputTokens": 8192
+        }
+      },
+      "id": "2f2140c1-1f80-4e03-aaa1-1552064bba31",
+      "name": "Extract from File",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert HR assistant.\n\nThe following text is extracted from a resume.\n\n{{ $json.content.parts[0].text }}\n\nExtract:\n\n- Name\n- Email\n- Phone\n- Skills\n- Education\n- Experience\n\nReturn only the extracted information.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert HR assistant that extracts structured candidate information from resume text."
+        }
+      },
+      "id": "57fac1d1-d938-495d-99e8-e7769b9fe161",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        672,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-latest",
+        "options": {}
+      },
+      "id": "56c6cd46-bd22-4199-a261-61f64f9e3dc8",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"Name\": {\n      \"type\": \"string\"\n    },\n    \"Email\": {\n      \"type\": \"string\"\n    },\n    \"Phone\": {\n      \"type\": \"string\"\n    },\n    \"Skills\": {\n      \"type\": \"string\"\n    },\n    \"Education\": {\n      \"type\": \"string\"\n    },\n    \"Experience\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"Name\",\n    \"Email\",\n    \"Phone\",\n    \"Skills\",\n    \"Education\",\n    \"Experience\"\n  ]\n}"
+      },
+      "id": "fc22f358-2102-4c1d-a7f8-55cc52eac41d",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name ": "={{$json.output.Name}}",
+            "Email": "={{$json.output.Email}}",
+            "Skills": "={{$json.output.Skills}}",
+            "Experience": "={{$json.output.Experience}}",
+            "Submitted At": "={{ $now }}",
+            "Phone": "={{$json.output.Phone}}",
+            "Education": "={{$json.output.Education}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name ",
+              "displayName": "Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Skills",
+              "displayName": "Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Education",
+              "displayName": "Education",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Experience",
+              "displayName": "Experience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Submitted At",
+              "displayName": "Submitted At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "1697b712-3fa7-401a-8b26-12db44b21768",
+      "name": "Append row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1024,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('AI Agent').item.json.output.Email }}",
+        "subject": "Application Received Successfully",
+        "emailType": "text",
+        "message": "=Hello {{ $('AI Agent').item.json.output.Name }},\n\nThank you for submitting your resume.\n\nWe have successfully received your application. Our HR team will review your profile and contact you if you are shortlisted.\n\nBest regards,\nHR Team",
+        "options": {}
+      },
+      "id": "db14a462-aee9-4653-a5d0-292c9ed9ca2d",
+      "name": "Send a message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        112
+      ],
+      "webhookId": "1de10d16-01e6-4c14-8184-a0df347286fa",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "vGQUXfNZpcsgV9L3",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9e4acb6d-1082-47ec-bb7c-7f67325490e5",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "gEjna42gOB8HRi4J",
+  "tags": []
+}
