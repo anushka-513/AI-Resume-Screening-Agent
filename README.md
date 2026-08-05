@@ -64,24 +64,6 @@ Google Sheets
 Confirmation Email
 ```
 
----
-
-## 📂 Project Structure
-
-```
-AI-Resume-Screening-Agent/
-│
-├── workflow.json
-├── README.md
-└── screenshots/
-    ├── workflow.png
-    ├── google-sheet.png
-    ├── email-confirmation.png
-    └── execution.png
-```
-
----
-
 ## 🚀 How It Works
 
 ### Step 1: Gmail Trigger
